@@ -2,7 +2,7 @@
 import pandas as pd, nltk, string, spacy
 from nltk.corpus import stopwords
 
-#nltk.download('punkt')
+nltk.download('punkt')
 nltk.download('stopwords')
 
 def return_token(sentence):
@@ -41,15 +41,22 @@ def treat_data(input_data):
         #nlp on sentences (create sentence back from list of words separated by " ")
         captions_cleaned_stemmed_and_lemmatized_by_spacy.append(nlp(' '.join(sentence)))
     
+    #tokenize and reclean
     captions_temp = []
     POS_captions = []
     for sentence in captions_cleaned_stemmed_and_lemmatized_by_spacy:
-        captions_temp.append([token.lemma_ for token in sentence])
-        POS_captions.append([token.pos_ for token in sentence])
+        sentence_lemmas = []
+        sentence_POS = []
+        for token in sentence:
+            if token.lemma_ not in allStopwords:
+                sentence_lemmas.append(token.lemma_)
+                sentence_POS.append(token.pos_)
+        captions_temp.append(sentence_lemmas)
+        POS_captions.append(sentence_POS)
     
     captions_cleaned_stemmed_and_lemmatized_by_spacy=captions_temp
     
-    lemmes = pd.Series(captions_cleaned_stemmed_and_lemmatized_by_spacy, name='lemmes', dtype='object')
+    lemmas = pd.Series(captions_cleaned_stemmed_and_lemmatized_by_spacy, name='lemmas', dtype='object')
     pos = pd.Series(POS_captions, name='pos', dtype='object')
     
-    return lemmes, pos
+    return lemmas, pos
