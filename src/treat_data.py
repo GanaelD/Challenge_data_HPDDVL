@@ -1,13 +1,11 @@
 #https://maelfabien.github.io/machinelearning/NLPfr/#1-tokenisation
-
 import pandas as pd, nltk, string, spacy
 from nltk.corpus import stopwords
 
-#python -m nltk.downloader all
-nltk.download("stopwords")
+#nltk.download('punkt')
+nltk.download('stopwords')
 
 def return_token(sentence):
-    #print(sentence)
     doc=nltk.word_tokenize(sentence, language='french')
     return [X for X in doc]
 
@@ -24,28 +22,34 @@ def treat_data(input_data):
     allStopwords.append("...")
     allStopwords = list(dict.fromkeys(allStopwords))
     
+    #tokenize captions
+    captions = [return_token(line) for line in input_data['Caption']]
     
-    captions_train = [return_token(line) for line in input_data['Caption']]
+    #clean captions
+    captions_cleaned = []
+    for message in captions:
+        captions_cleaned.append([word.lower() for word in message if word not in allStopwords])
     
-    captions_train_cleaned = []
-    for message in captions_train:
-        captions_train_cleaned.append([word.lower() for word in message if word not in allStopwords])
-    
-    #python3 -m spacy download fr_core_news_md
+    #lemmatized captions
+    #DOWNLOAD MODEL with conda install -c conda-forge spacy-model-fr_core_news_md
+    #                 or python -m spacy download fr_core_news_md
     nlp = spacy.load('fr_core_news_md')
     
-    captions_train_cleaned_stemmed_and_lemmatized_by_spacy = []
+    captions_cleaned_stemmed_and_lemmatized_by_spacy = []
 
-    for sentence in captions_train_cleaned:
+    for sentence in captions_cleaned:
         #nlp on sentences (create sentence back from list of words separated by " ")
-        captions_train_cleaned_stemmed_and_lemmatized_by_spacy.append(nlp(' '.join(sentence)))
+        captions_cleaned_stemmed_and_lemmatized_by_spacy.append(nlp(' '.join(sentence)))
     
     captions_temp = []
-    POS_captions_train = []
-    for sentence in captions_train_cleaned_stemmed_and_lemmatized_by_spacy:
+    POS_captions = []
+    for sentence in captions_cleaned_stemmed_and_lemmatized_by_spacy:
         captions_temp.append([token.lemma_ for token in sentence])
-        POS_captions_train.append([token.pos_ for token in sentence])
+        POS_captions.append([token.pos_ for token in sentence])
     
-    captions_train_cleaned_stemmed_and_lemmatized_by_spacy=captions_temp
+    captions_cleaned_stemmed_and_lemmatized_by_spacy=captions_temp
     
-    return captions_train_cleaned_stemmed_and_lemmatized_by_spacy,POS_captions_train
+    lemmes = pd.Series(captions_cleaned_stemmed_and_lemmatized_by_spacy, name='lemmes', dtype='object')
+    pos = pd.Series(POS_captions, name='pos', dtype='object')
+    
+    return lemmes, pos
