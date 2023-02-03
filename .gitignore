@@ -1,1 +1,3 @@
 __pycache__
+resources/glove.6B.100d.txt
+resources/multilingual_embeddings.txt
